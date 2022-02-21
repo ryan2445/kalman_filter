@@ -1,5 +1,7 @@
 import math
 import numpy as np
+from numpy.linalg import multi_dot
+from numpy.linalg import inv
 import re
 
 def readFile():
@@ -19,10 +21,18 @@ def readFile():
 
     return data
 
-def kalmanFilter(s_i):
+def kalmanFilter(s_i, index):
+    X_priori = multi_dot([s_i["A"], s[index - 1]["X"]])
 
+    P_priori = np.add(multi_dot([s_i["A"], s[index - 1]["P"], np.transpose(s_i["A"])]), Q)
 
-    return s_i
+    K = multi_dot([P_priori, np.transpose(H), inv(np.add(multi_dot([H, P_priori, np.transpose(H)]), s_i["R"]))])
+
+    X = np.add(X_priori, multi_dot([K, np.subtract(s_i["Z"], multi_dot([H, X_priori]))]))
+
+    P = np.subtract(P_priori, multi_dot([K, H, P_priori]))
+
+    return {"X": X, "P": P}
 
 data = readFile()
 
@@ -37,18 +47,9 @@ imu_heading = data["field.I_t"]
 imu_co_heading = data["field.Co_I_t"]
 V = 0.44
 L = 1
-# omega = V * math.tan(odom_theta[0]) / L
 delta_t = 0.001
 total = len(odom_x)
 
-# x = np.array([odom_x[0], odom_y[0], V, odom_theta[0], omega])
-Q = np.array([
-    [0.00001, 0, 0, 0, 0],
-    [0, 0.00001, 0, 0, 0],
-    [0, 0, 0.0001, 0, 0],
-    [0, 0, 0, 0.0001, 0],
-    [0, 0, 0, 0, 0.0001]
-])
 H = np.array([
     [1, 0, 0, 0, 0],
     [0, 1, 0, 0, 0],
@@ -56,22 +57,18 @@ H = np.array([
     [0, 0, 0, 1, 0],
     [0, 0, 0, 0, 1]
 ])
-# R = np.array([
-#     [0.1, 0, 0, 0, 0],
-#     [0, 0.1, 0, 0, 0],
-#     [0, 0, 0.01, 0, 0],
-#     [0, 0, 0, 0.01, 0],
-#     [0, 0, 0, 0, 0.01]
-# ])
-B = np.array([
-    [1, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0],
-    [0, 0, 1, 0, 0],
-    [0, 0, 0, 1, 0],
-    [0, 0, 0, 0, 1]
+
+Q = np.array([
+    [0.00001, 0, 0, 0, 0],
+    [0, 0.00001, 0, 0, 0],
+    [0, 0, 0.001, 0, 0],
+    [0, 0, 0, 0.001, 0],
+    [0, 0, 0, 0, 0.001]
 ])
-u = np.array([0, 0, 0, 0, 0])
-P = np.array([
+
+s = [{}] * total
+
+s[0]["P"] = np.array([
     [0.01, 0, 0, 0, 0],
     [0, 0.01, 0, 0, 0],
     [0, 0, 0.01, 0, 0],
@@ -79,12 +76,14 @@ P = np.array([
     [0, 0, 0, 0, 0.01]
 ])
 
-s = [{}] * total
+omega = V * math.tan(odom_theta[0]) / L
+
+s[0]["X"] = np.array([odom_x[0], odom_y[0], V, odom_theta[0], omega])
 
 for i in range(total - 1):
     A = np.array([
-        [1, 0, delta_t*math.cos(odom_theta[i]), 0, 0],
-        [0, 1, delta_t*math.sin(odom_theta[i]), 0, 0],
+        [1, 0, delta_t * math.cos(odom_theta[i]), 0, 0],
+        [0, 1, delta_t * math.sin(odom_theta[i]), 0, 0],
         [0, 0, 1, 0, 0],
         [0, 0, 0, 1, delta_t],
         [0, 0, 0, 0, 1]
@@ -100,13 +99,11 @@ for i in range(total - 1):
 
     omega = V * math.tan(odom_theta[i]) / L
 
-    x = np.array([odom_x[i], odom_y[i], V, odom_theta[i], omega])
+    Z = np.array([gps_x[i], gps_y[i], V, imu_heading[i], omega])
 
-    z = np.array([gps_x[i], gps_y[i], V, imu_heading[i], omega])
-
-    s[i]["x"] = x
     s[i]["A"] = A
     s[i]["R"] = R
-    s[i]["z"] = z
+    s[i]["Z"] = Z
 
-    s[i + 1] = kalmanFilter(s[i])
+    if i > 0:
+        s[i + 1] = kalmanFilter(s[i], i)
