@@ -115,8 +115,25 @@ for i in range(len(s)):
     x.append(s[i]['X'][0])
     y.append(s[i]['X'][1])
 
-plt.plot(x, y, label="kalman")
-plt.plot(odom_x, odom_y, label="odm")
+plt.plot(odom_x, odom_y, label="odom")
 plt.plot(gps_x, gps_y, label="gps")
+plt.plot(x, y, label="kalman")
 plt.legend()
+plt.xlabel("X (m)")
+plt.ylabel("Y (m)")
 plt.savefig("graph.png")
+plt.clf()
+
+x, y = [], []
+for i in range(len(s)):
+    x.append(i+1)
+    y.append(s[i]['X'][3])
+
+plt.plot(x, odom_theta, label="odom")
+plt.plot(x, imu_heading, label="imu")
+plt.plot(x, y, label="kalman")
+plt.legend()
+plt.xlabel("Iteration")
+plt.ylabel("Radian")
+plt.savefig("graph2.png")
+plt.clf()
