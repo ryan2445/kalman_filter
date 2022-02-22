@@ -1,8 +1,10 @@
+from cProfile import label
 import math
 import numpy as np
 from numpy.linalg import multi_dot
 from numpy.linalg import inv
 import re
+import matplotlib.pyplot as plt
 
 def readFile():
     file = open("EKF_DATA_circle.txt", "r")
@@ -107,3 +109,14 @@ for i in range(total - 1):
 
     if i > 0:
         s[i + 1] = kalmanFilter(s[i], i)
+
+x, y = [], []
+for i in range(len(s)):
+    x.append(s[i]['X'][0])
+    y.append(s[i]['X'][1])
+
+plt.plot(x, y, label="kalman")
+plt.plot(odom_x, odom_y, label="odm")
+plt.plot(gps_x, gps_y, label="gps")
+plt.legend()
+plt.savefig("graph.png")
