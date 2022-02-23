@@ -1,10 +1,10 @@
-from cProfile import label
 import math
 import numpy as np
 from numpy.linalg import multi_dot
 from numpy.linalg import inv
 import re
 import matplotlib.pyplot as plt
+import random
 
 def readFile():
     file = open("EKF_DATA_circle.txt", "r")
@@ -43,10 +43,21 @@ odom_y = data["field.O_y"]
 odom_theta = data["field.O_t"]
 gps_x = data["field.G_x"]
 gps_y = data["field.G_y"]
+#for i in range(len(gps_x)):
+    #if (2500 <= i <= 3000) or (1000 <= i <= 1500):
+    #gps_x[i] += random.uniform(-0.2, 0.2)
+    #gps_y[i] += random.uniform(-0.2, 0.2)
 gps_co_x = data["field.Co_gps_x"]
 gps_co_y = data["field.Co_gps_y"]
+#for i in range(len(gps_co_x)):
+#     if (2500 <= i <= 3000) or (1000 <= i <= 1500):
+    #gps_co_x[i] += 0.1 #+ random.uniform(-0.1, 0.1)
+    #gps_co_y[i] += 0.1 #+ random.uniform(-0.1, 0.1)
 imu_heading = data["field.I_t"]
 imu_co_heading = data["field.Co_I_t"]
+#for i in range(len(imu_co_heading)):
+    #if (2500 <= i <= 3000) or (1000 <= i <= 1500):
+        #imu_co_heading[i] += 0.2 + random.uniform(-0.2, 0.2)
 V = 0.44
 L = 1
 delta_t = 0.001
@@ -118,6 +129,9 @@ for i in range(len(s)):
 plt.plot(odom_x, odom_y, label="odom")
 plt.plot(gps_x, gps_y, label="gps")
 plt.plot(x, y, label="kalman")
+# plt.scatter(odom_x, odom_y, label="odom", s=0.5)
+# plt.scatter(gps_x, gps_y, label="gps", s=0.5)
+# plt.scatter(x, y, label="kalman", s=0.5)
 plt.legend()
 plt.xlabel("X (m)")
 plt.ylabel("Y (m)")
@@ -132,6 +146,9 @@ for i in range(len(s)):
 plt.plot(x, odom_theta, label="odom")
 plt.plot(x, imu_heading, label="imu")
 plt.plot(x, y, label="kalman")
+# plt.scatter(x, odom_theta, label="odom", s=0.5)
+# plt.scatter(x, imu_heading, label="imu", s=0.5)
+# plt.scatter(x, y, label="kalman", s=0.5)
 plt.legend()
 plt.xlabel("Iteration")
 plt.ylabel("Radian")
