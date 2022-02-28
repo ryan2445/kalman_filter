@@ -43,18 +43,21 @@ odom_y = data["field.O_y"]
 odom_theta = data["field.O_t"]
 gps_x = data["field.G_x"]
 gps_y = data["field.G_y"]
+#   USED TO CHANGE / ADD NOISE TO GPS POSITION DATA
 #for i in range(len(gps_x)):
     #if (2500 <= i <= 3000) or (1000 <= i <= 1500):
     #gps_x[i] += random.uniform(-0.2, 0.2)
     #gps_y[i] += random.uniform(-0.2, 0.2)
 gps_co_x = data["field.Co_gps_x"]
 gps_co_y = data["field.Co_gps_y"]
+#   USED TO CHANGE / ADD NOISE TO GPS COVARIANCE DATA
 #for i in range(len(gps_co_x)):
 #     if (2500 <= i <= 3000) or (1000 <= i <= 1500):
     #gps_co_x[i] += 0.1 #+ random.uniform(-0.1, 0.1)
     #gps_co_y[i] += 0.1 #+ random.uniform(-0.1, 0.1)
 imu_heading = data["field.I_t"]
 imu_co_heading = data["field.Co_I_t"]
+#   USED TO CHANGE / ADD NOISE TO IMU COVARIANCE DATA
 #for i in range(len(imu_co_heading)):
     #if (2500 <= i <= 3000) or (1000 <= i <= 1500):
         #imu_co_heading[i] += 0.2 + random.uniform(-0.2, 0.2)
@@ -135,7 +138,7 @@ plt.plot(x, y, label="kalman")
 plt.legend()
 plt.xlabel("X (m)")
 plt.ylabel("Y (m)")
-plt.savefig("graph.png")
+plt.savefig("position.png")
 plt.clf()
 
 x, y = [], []
@@ -152,5 +155,5 @@ plt.plot(x, y, label="kalman")
 plt.legend()
 plt.xlabel("Iteration")
 plt.ylabel("Radian")
-plt.savefig("graph2.png")
+plt.savefig("orientation.png")
 plt.clf()
