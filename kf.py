@@ -56,11 +56,15 @@ gps_co_y = data["field.Co_gps_y"]
 #         gps_co_x[i] += 0.1 + random.uniform(-0.1, 0.1)
 #         gps_co_y[i] += 0.1 + random.uniform(-0.1, 0.1)
 imu_heading = data["field.I_t"]
+#   CALIBARTING IMU HEADING DATA
+for i in range(len(imu_heading)):
+    imu_heading[i] += 0.32981-0.237156
 imu_co_heading = data["field.Co_I_t"]
 #   USED TO CHANGE / ADD NOISE TO IMU COVARIANCE DATA
 # for i in range(len(imu_co_heading)):
 #     if (2500 <= i <= 3000) or (1000 <= i <= 1500):
 #         imu_co_heading[i] += 0.2 + random.uniform(-0.2, 0.2)
+
 V = 0.44
 L = 1
 delta_t = 0.001
