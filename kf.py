@@ -38,34 +38,42 @@ def kalmanFilter(s_i, index):
 
 data = readFile()
 
+#   INITIALIZATION
 odom_x = data["field.O_x"]
 odom_y = data["field.O_y"]
 odom_theta = data["field.O_t"]
 gps_x = data["field.G_x"]
 gps_y = data["field.G_y"]
+
 #   USED TO CHANGE / ADD NOISE TO GPS POSITION DATA
 # for i in range(len(gps_x)):
 #     if (2500 <= i <= 3000) or (1000 <= i <= 1500):
-#         gps_x[i] += random.uniform(-0.2, 0.2)
-#         gps_y[i] += random.uniform(-0.2, 0.2)
+#         gps_x[i] += random.uniform(0.1, 1)
+#         gps_y[i] += random.uniform(0.1, 1)
+
 gps_co_x = data["field.Co_gps_x"]
 gps_co_y = data["field.Co_gps_y"]
+
 #   USED TO CHANGE / ADD NOISE TO GPS COVARIANCE DATA
 # for i in range(len(gps_co_x)):
 #     if (2500 <= i <= 3000) or (1000 <= i <= 1500):
-#         gps_co_x[i] += 0.1 + random.uniform(-0.1, 0.1)
-#         gps_co_y[i] += 0.1 + random.uniform(-0.1, 0.1)
+#         gps_co_x[i] += random.uniform(1, 2)
+#         gps_co_y[i] += random.uniform(1, 2)
+
 imu_heading = data["field.I_t"]
+
 #   CALIBARTING IMU HEADING DATA
 for i in range(len(imu_heading)):
     imu_heading[i] += 0.32981-0.237156
+
 imu_co_heading = data["field.Co_I_t"]
+
 #   USED TO CHANGE / ADD NOISE TO IMU COVARIANCE DATA
 # for i in range(len(imu_co_heading)):
 #     if (2500 <= i <= 3000) or (1000 <= i <= 1500):
-#         imu_co_heading[i] += 0.2 + random.uniform(-0.2, 0.2)
+#         imu_co_heading[i] += random.uniform(1, 2)
 
-V = 0.44
+V = 0.14
 L = 1
 delta_t = 0.001
 total = len(odom_x)
@@ -79,8 +87,8 @@ H = np.array([
 ])
 
 Q = np.array([
-    [0.00001, 0, 0, 0, 0],
-    [0, 0.00001, 0, 0, 0],
+    [0.0004, 0, 0, 0, 0],
+    [0, 0.0004, 0, 0, 0],
     [0, 0, 0.001, 0, 0],
     [0, 0, 0, 0.001, 0],
     [0, 0, 0, 0, 0.001]
@@ -89,17 +97,18 @@ Q = np.array([
 s = [{}] * total
 
 s[0]["P"] = np.array([
-    [0.01, 0, 0, 0, 0],
-    [0, 0.01, 0, 0, 0],
-    [0, 0, 0.01, 0, 0],
-    [0, 0, 0, 0.01, 0],
-    [0, 0, 0, 0, 0.01]
+    [0.001, 0, 0, 0, 0],
+    [0, 0.001, 0, 0, 0],
+    [0, 0, 0.001, 0, 0],
+    [0, 0, 0, 0.001, 0],
+    [0, 0, 0, 0, 0.001]
 ])
 
 omega = V * math.tan(odom_theta[0]) / L
 
 s[0]["X"] = np.array([odom_x[0], odom_y[0], V, odom_theta[0], omega])
 
+#   KALMAN LOOP
 for i in range(total - 1):
     A = np.array([
         [1, 0, delta_t * math.cos(odom_theta[i]), 0, 0],
@@ -117,8 +126,6 @@ for i in range(total - 1):
         [0, 0, 0, 0, 0.01]
     ])
 
-    omega = V * math.tan(odom_theta[i]) / L
-
     Z = np.array([gps_x[i], gps_y[i], V, imu_heading[i], omega])
 
     s[i]["A"] = A
@@ -128,6 +135,7 @@ for i in range(total - 1):
     if i > 0:
         s[i + 1] = kalmanFilter(s[i], i)
 
+#   GRAPHING
 x, y = [], []
 for i in range(len(s)):
     x.append(s[i]['X'][0])
